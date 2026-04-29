@@ -38,7 +38,6 @@
           enabled: false
           auto_enable_if_dof_ge: 7
           strategy: "joint_sampling"
-          shift_joints: []
           delta: 0.2
           samples: 5
         postprocess:
