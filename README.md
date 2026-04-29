@@ -48,13 +48,20 @@ moveit_trace_motion_planner/TracePlannerManager
 
 ## Example Launch
 
-UR5e with `ur_moveit_config`:
+UR5e without a real robot uses fake hardware in one terminal and MoveIt in a
+second terminal:
+
+```bash
+ros2 launch moveit_trace_motion_planner trace_ur5e_fake_hardware.launch.py
+```
+
+Then:
 
 ```bash
 ros2 launch moveit_trace_motion_planner trace_ur5e.launch.py ur_type:=ur5e launch_rviz:=true
 ```
 
-FR3 with `franka_fr3_moveit_config` and fake hardware:
+FR3 without a real robot:
 
 ```bash
 ros2 launch moveit_trace_motion_planner trace_fr3.launch.py robot_ip:=dont-care use_fake_hardware:=true
