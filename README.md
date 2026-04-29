@@ -10,6 +10,8 @@ Masanori Sekiguchi and Naoyuki Takesue, "Motion Planning for Redundant
 Japanese notes and current experiment guidance are available in
 [README_ja.md](README_ja.md).
 
+`README_ja.md` also documents the current differences from the paper method.
+
 ## Implemented Scope
 
 - MoveIt2 `planning_interface::PlannerManager` plugin.

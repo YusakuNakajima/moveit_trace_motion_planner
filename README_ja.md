@@ -79,6 +79,42 @@ trace_planner:
 箱の近くをかすめる候補ではなく、箱から少し離れた候補も試せるため、UR5e のように候補数と冗長性が少ないロボットでは成功率が上がることがあります。  
 一方で、offset を大きくしすぎると軌道が大回りになったり、IK が解けにくくなる可能性があります。
 
+## 論文手法との差分
+
+現在の実装は論文の考え方を取り入れていますが、完全再現ではありません。
+
+近い点:
+
+- start / goal のロボット全体形状から waypoint 候補を作る
+- `G1, I1, G2, I2...` の順で Trace waypoint を使う
+- 関節空間のランダム探索は使わない
+- intermediate waypoint では position + direction IK を使う
+- Shift motion は本体ではなく optional 扱い
+
+主な違い:
+
+- waypoint は MoveIt の link transform から生成しており、論文の「各関節位置 + 各リンク方向」を厳密に再現しているわけではありません。
+- direction IK は tip link の Z 軸方向を使った DLS numerical IK です。論文中の方向誤差表現に近づけていますが、優先度付き IK ではありません。
+- intermediate IK では、position + direction IK が失敗した場合に MoveIt full-pose IK へ fallback します。これは実用上の補助で、論文そのものの手順ではありません。
+- UR5e example では offset waypoint と shortcut search を default で有効にしています。これは 6DOF ロボットで検証しやすくするための実験的補助で、論文手法そのものではありません。
+- Shift motion、prioritized IK、null-space IK はまだ未実装です。
+- path pruning / smoothing はまだ未実装です。
+- 解発見保証はありません。これは論文でも今後の課題として述べられている点ですが、現実装は Shift motion が無い分さらに失敗しやすいです。
+
+したがって、この repository の現状は次の位置づけです。
+
+```text
+Trace motion inspired MoveIt2 plugin prototype
+```
+
+論文再現度を上げる次の候補:
+
+1. waypoint 生成を「関節位置 + リンク方向」にさらに寄せる
+2. direction IK の誤差・Jacobian を論文の方向誤差により忠実にする
+3. Shift motion の joint sampling 版を追加する
+4. FR3 / 7DOF で評価する
+5. prioritized IK / null-space IK を追加する
+
 ## UR5e で失敗しやすい理由
 
 UR5e は 6DOF なので、7DOF ロボットより冗長性が少ないです。  
