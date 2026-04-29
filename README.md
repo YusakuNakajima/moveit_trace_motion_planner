@@ -1,11 +1,11 @@
 # MoveIt Trace Motion Planner
 
-Minimal MoveIt2 planning plugin for the Trace motion planner described in
-`40_40_154.pdf`.
+Minimal MoveIt2 planning plugin for the Trace motion planner described in the paper:
 
-This repository currently contains implementation files only. It is written for
-ROS 2 Humble / MoveIt2 Humble, but this local environment does not include ROS,
-so build and runtime verification should be done in a separate ROS workspace.
+Masanori Sekiguchi and Naoyuki Takesue, "Motion Planning for Redundant
+  Articulated Robots Based on Geometrical Properties of the Whole Robot Body in
+  Initial and Goal Configuration", Journal of the Robotics Society of Japan,
+  40(2), 154-161, 2022. https://doi.org/10.7210/jrsj.40.154
 
 ## Implemented Scope
 
@@ -52,3 +52,10 @@ moveit_trace_motion_planner/TracePlannerManager
 - Franka Research 3 / FR3 through `franka_fr3_moveit_config`
 
 The example configs are not hard dependencies of the planner package.
+
+## References
+
+- Masanori Sekiguchi and Naoyuki Takesue, "Motion Planning for Redundant
+  Articulated Robots Based on Geometrical Properties of the Whole Robot Body in
+  Initial and Goal Configuration", Journal of the Robotics Society of Japan,
+  40(2), 154-161, 2022. https://doi.org/10.7210/jrsj.40.154
