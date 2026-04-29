@@ -37,6 +37,8 @@ bool TracePlannerManager::initialize(const moveit::core::RobotModelConstPtr& mod
   readParameter("trace_planner.waypoint_source.use_link_directions", config_.use_link_directions);
   readParameter("trace_planner.waypoint_source.skip_base_link", config_.skip_base_link);
   readParameter("trace_planner.waypoint_source.skip_tip_link", config_.skip_tip_link);
+  readParameter("trace_planner.waypoint_source.add_offset_waypoints", config_.add_offset_waypoints);
+  readParameter("trace_planner.waypoint_source.offset_distance", config_.waypoint_offset_distance);
   readParameter("trace_planner.collision.check_self_collision", config_.check_self_collision);
   readParameter("trace_planner.collision.check_scene_collision", config_.check_scene_collision);
   readParameter("trace_planner.shift_motion.enabled", config_.shift_motion_enabled);

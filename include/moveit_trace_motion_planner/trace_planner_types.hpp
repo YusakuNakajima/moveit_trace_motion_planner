@@ -43,6 +43,8 @@ struct TracePlannerConfig
   bool use_link_directions{ true };
   bool skip_base_link{ true };
   bool skip_tip_link{ false };
+  bool add_offset_waypoints{ true };
+  double waypoint_offset_distance{ 0.08 };
 
   bool shift_motion_enabled{ false };
 };

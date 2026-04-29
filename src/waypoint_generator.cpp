@@ -1,6 +1,7 @@
 #include <moveit_trace_motion_planner/waypoint_generator.hpp>
 
 #include <algorithm>
+#include <array>
 #include <utility>
 
 namespace moveit_trace_motion_planner
@@ -53,6 +54,21 @@ WaypointGenerator::generate(const moveit::core::RobotState& state,
       waypoint.target_pose.linear() = fallback_orientation;
     }
     waypoints.push_back(waypoint);
+
+    if (config_.add_offset_waypoints && config_.waypoint_offset_distance > 0.0)
+    {
+      const std::array<Eigen::Vector3d, 6> offsets = {
+        Eigen::Vector3d::UnitX(),  -Eigen::Vector3d::UnitX(), Eigen::Vector3d::UnitY(),
+        -Eigen::Vector3d::UnitY(), Eigen::Vector3d::UnitZ(),  -Eigen::Vector3d::UnitZ()
+      };
+      for (const auto& offset_direction : offsets)
+      {
+        TraceWaypoint offset_waypoint = waypoint;
+        offset_waypoint.link_name = link_name + "_offset";
+        offset_waypoint.target_pose.translation() += config_.waypoint_offset_distance * offset_direction;
+        waypoints.push_back(offset_waypoint);
+      }
+    }
   }
 
   return waypoints;
