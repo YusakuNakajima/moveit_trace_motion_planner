@@ -25,10 +25,10 @@
           use_link_directions: true
           skip_base_link: true
           skip_tip_link: false
-          add_offset_waypoints: false
-          offset_distance: 0.08
+          add_offset_waypoints: true
+          offset_distance: 0.12
         search:
-          enable_shortcut_search: false
+          enable_shortcut_search: true
         ik:
           type: "moveit_ik"
           timeout: 0.02

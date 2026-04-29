@@ -12,6 +12,19 @@ planner_id: TraceMotion
 
 Shift motion is intentionally disabled for this 6-DOF example.
 
+UR5e uses the experimental shortcut settings by default because the 6-DOF arm
+has little redundancy and the paper-style accumulated trace can fail easily
+around wrist-side obstacles:
+
+```yaml
+trace_planner:
+  waypoint_source:
+    add_offset_waypoints: true
+    offset_distance: 0.12
+  search:
+    enable_shortcut_search: true
+```
+
 Without a real robot, start fake hardware first:
 
 ```bash

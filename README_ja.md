@@ -63,6 +63,22 @@ trace_planner:
 この設定では、各 Trace waypoint の周辺に deterministic な offset 候補を追加し、単一 waypoint や start/goal waypoint pair も試します。  
 これは論文そのものではありませんが、UR5e のような 6DOF ロボットで検証しやすくするための実験的な補助です。
 
+UR5e example では、この実用寄り option を default にしています。
+
+```yaml
+trace_planner:
+  waypoint_source:
+    add_offset_waypoints: true
+    offset_distance: 0.12
+
+  search:
+    enable_shortcut_search: true
+```
+
+`offset_distance` を `0.08` から `0.12` にすると、各 Trace waypoint の周辺候補がより外側に生成されます。  
+箱の近くをかすめる候補ではなく、箱から少し離れた候補も試せるため、UR5e のように候補数と冗長性が少ないロボットでは成功率が上がることがあります。  
+一方で、offset を大きくしすぎると軌道が大回りになったり、IK が解けにくくなる可能性があります。
+
 ## UR5e で失敗しやすい理由
 
 UR5e は 6DOF なので、7DOF ロボットより冗長性が少ないです。  
@@ -159,4 +175,3 @@ couldn't receive full current joint state within 1s
 ```bash
 ros2 topic echo /joint_states --once
 ```
-
