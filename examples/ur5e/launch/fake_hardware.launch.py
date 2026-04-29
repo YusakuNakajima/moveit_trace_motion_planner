@@ -26,8 +26,8 @@ def generate_launch_description():
             DeclareLaunchArgument("launch_rviz", default_value="false"),
             DeclareLaunchArgument(
                 "initial_joint_controller",
-                default_value="joint_trajectory_controller",
-                description="Use the standard JTC for fake hardware.",
+                default_value="scaled_joint_trajectory_controller",
+                description="Controller activated by ur_robot_driver fake hardware.",
             ),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([ur_control_launch]),

@@ -28,7 +28,7 @@ def generate_launch_description():
             DeclareLaunchArgument("launch_rviz", default_value="false"),
             DeclareLaunchArgument(
                 "initial_joint_controller",
-                default_value="joint_trajectory_controller",
+                default_value="scaled_joint_trajectory_controller",
             ),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([fake_hardware_launch]),

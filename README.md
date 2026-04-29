@@ -61,9 +61,9 @@ Then:
 ros2 launch moveit_trace_motion_planner trace_ur5e.launch.py ur_type:=ur5e launch_rviz:=true
 ```
 
-The UR5e MoveIt launch defaults `use_fake_hardware:=true` in this package so
-MoveIt selects `joint_trajectory_controller` instead of the scaled controller
-that is inactive under fake hardware.
+The UR5e fake hardware launch activates `scaled_joint_trajectory_controller`
+by default because the upstream UR MoveIt config sends trajectories to that
+controller.
 
 FR3 without a real robot:
 
