@@ -103,25 +103,41 @@ TracePlanResult TracePlanner::plan(const planning_scene::PlanningSceneConstPtr& 
     return finish(result);
   }
 
-  GoalPose goal_pose;
-  std::string goal_error;
-  if (!extractGoalPose(request, goal_pose, goal_error))
-  {
-    result.message = goal_error;
-    return finish(result);
-  }
-
   moveit::core::RobotState start_state(planning_scene->getCurrentState());
   moveit::core::robotStateMsgToRobotState(request.start_state, start_state);
   start_state.update();
   start_state.enforceBounds(joint_model_group);
 
   moveit::core::RobotState goal_state(start_state);
-  if (!solveIk(joint_model_group, goal_pose.link_name, goal_pose.pose, start_state, goal_state))
+  std::string tip_link;
+
+  GoalPose goal_pose;
+  std::string pose_goal_error;
+  if (extractGoalPose(request, goal_pose, pose_goal_error))
   {
-    result.failure_reason = TraceFailureReason::GOAL_IK_FAILED;
-    result.message = "Failed to solve IK for the goal pose";
-    return finish(result);
+    tip_link = goal_pose.link_name;
+    if (!solveIk(joint_model_group, tip_link, goal_pose.pose, start_state, goal_state))
+    {
+      result.failure_reason = TraceFailureReason::GOAL_IK_FAILED;
+      result.message = "Failed to solve IK for the goal pose";
+      return finish(result);
+    }
+  }
+  else
+  {
+    std::string joint_goal_error;
+    if (!extractJointGoal(request, joint_model_group, start_state, goal_state, joint_goal_error))
+    {
+      result.message = pose_goal_error + "; " + joint_goal_error;
+      return finish(result);
+    }
+    tip_link = getDefaultTipLink(joint_model_group);
+    if (tip_link.empty())
+    {
+      result.failure_reason = TraceFailureReason::UNSUPPORTED_REQUEST;
+      result.message = "Could not infer a tip link for the planning group";
+      return finish(result);
+    }
   }
 
   CollisionChecker collision_checker(planning_scene, request.group_name, config_.max_joint_step);
@@ -137,12 +153,12 @@ TracePlanResult TracePlanner::plan(const planning_scene::PlanningSceneConstPtr& 
 
   WaypointGenerator waypoint_generator(config_);
   const auto start_waypoints =
-      waypoint_generator.generate(start_state, joint_model_group, goal_pose.link_name, TraceWaypoint::Source::START);
+      waypoint_generator.generate(start_state, joint_model_group, tip_link, TraceWaypoint::Source::START);
   const auto goal_waypoints =
-      waypoint_generator.generate(goal_state, joint_model_group, goal_pose.link_name, TraceWaypoint::Source::GOAL);
+      waypoint_generator.generate(goal_state, joint_model_group, tip_link, TraceWaypoint::Source::GOAL);
 
   TraceFailureReason trace_failure = TraceFailureReason::COLLISION_FREE_PATH_NOT_FOUND;
-  auto trace_path = buildTraceStatePath(start_state, goal_state, joint_model_group, goal_pose.link_name, start_waypoints,
+  auto trace_path = buildTraceStatePath(start_state, goal_state, joint_model_group, tip_link, start_waypoints,
                                         goal_waypoints, planning_scene, trace_failure);
   if (!trace_path.empty())
   {
@@ -194,6 +210,59 @@ bool TracePlanner::extractGoalPose(const planning_interface::MotionPlanRequest& 
   goal_pose.pose = toEigenPose(position_constraint.constraint_region.primitive_poses.front());
   goal_pose.pose.linear() = toEigenQuaternion(orientation_constraint.orientation).toRotationMatrix();
   return true;
+}
+
+bool TracePlanner::extractJointGoal(const planning_interface::MotionPlanRequest& request,
+                                    const moveit::core::JointModelGroup* joint_model_group,
+                                    const moveit::core::RobotState& start_state,
+                                    moveit::core::RobotState& goal_state, std::string& error) const
+{
+  if (request.goal_constraints.size() != 1)
+  {
+    error = "joint goal requires exactly one goal constraint";
+    return false;
+  }
+
+  const auto& constraints = request.goal_constraints.front();
+  if (constraints.joint_constraints.empty())
+  {
+    error = "joint goal has no joint constraints";
+    return false;
+  }
+
+  if (!constraints.position_constraints.empty() || !constraints.orientation_constraints.empty() ||
+      !constraints.visibility_constraints.empty())
+  {
+    error = "mixed joint/pose goal constraints are not supported";
+    return false;
+  }
+
+  const std::vector<std::string>& group_variables = joint_model_group->getVariableNames();
+  goal_state = start_state;
+
+  for (const auto& joint_constraint : constraints.joint_constraints)
+  {
+    if (std::find(group_variables.begin(), group_variables.end(), joint_constraint.joint_name) == group_variables.end())
+    {
+      error = "joint goal contains a joint outside the planning group: " + joint_constraint.joint_name;
+      return false;
+    }
+    goal_state.setVariablePosition(joint_constraint.joint_name, joint_constraint.position);
+  }
+
+  goal_state.enforceBounds(joint_model_group);
+  goal_state.update();
+  return true;
+}
+
+std::string TracePlanner::getDefaultTipLink(const moveit::core::JointModelGroup* joint_model_group) const
+{
+  const std::vector<std::string>& link_names = joint_model_group->getLinkModelNames();
+  if (link_names.empty())
+  {
+    return {};
+  }
+  return link_names.back();
 }
 
 bool TracePlanner::solveIk(const moveit::core::JointModelGroup* joint_model_group, const std::string& tip_link,

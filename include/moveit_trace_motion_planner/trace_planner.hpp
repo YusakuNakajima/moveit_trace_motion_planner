@@ -25,6 +25,11 @@ public:
 private:
   bool extractGoalPose(const planning_interface::MotionPlanRequest& request, GoalPose& goal_pose,
                        std::string& error) const;
+  bool extractJointGoal(const planning_interface::MotionPlanRequest& request,
+                        const moveit::core::JointModelGroup* joint_model_group,
+                        const moveit::core::RobotState& start_state, moveit::core::RobotState& goal_state,
+                        std::string& error) const;
+  std::string getDefaultTipLink(const moveit::core::JointModelGroup* joint_model_group) const;
   bool solveIk(const moveit::core::JointModelGroup* joint_model_group, const std::string& tip_link,
                const Eigen::Isometry3d& target_pose, const moveit::core::RobotState& seed_state,
                moveit::core::RobotState& solution_state) const;
