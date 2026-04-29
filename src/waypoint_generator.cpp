@@ -64,6 +64,7 @@ WaypointGenerator::generate(const moveit::core::RobotState& state,
       for (const auto& offset_direction : offsets)
       {
         TraceWaypoint offset_waypoint = waypoint;
+        offset_waypoint.is_offset = true;
         offset_waypoint.link_name = link_name + "_offset";
         offset_waypoint.target_pose.translation() += config_.waypoint_offset_distance * offset_direction;
         waypoints.push_back(offset_waypoint);

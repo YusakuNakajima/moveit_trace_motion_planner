@@ -18,7 +18,7 @@
 
       trace_planner:
         max_planning_time: 1.0
-        max_waypoints: 40
+        max_waypoints: 84
         waypoint_source:
           use_joint_positions: true
           use_link_directions: true

@@ -60,6 +60,7 @@ struct TraceWaypoint
   Source source{ Source::START };
   std::string link_name;
   Eigen::Isometry3d target_pose{ Eigen::Isometry3d::Identity() };
+  bool is_offset{ false };
 };
 
 struct GoalPose
