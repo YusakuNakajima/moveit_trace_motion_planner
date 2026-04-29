@@ -7,6 +7,9 @@ Masanori Sekiguchi and Naoyuki Takesue, "Motion Planning for Redundant
   Initial and Goal Configuration", Journal of the Robotics Society of Japan,
   40(2), 154-161, 2022. https://doi.org/10.7210/jrsj.40.154
 
+Japanese notes and current experiment guidance are available in
+[README_ja.md](README_ja.md).
+
 ## Implemented Scope
 
 - MoveIt2 `planning_interface::PlannerManager` plugin.
