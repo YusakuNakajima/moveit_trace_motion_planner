@@ -1,11 +1,11 @@
 trace_motion_planner:
   planning_plugin: "moveit_trace_motion_planner/TracePlannerManager"
   request_adapters: >-
-    default_planning_request_adapters/ResolveConstraintFrames
-    default_planning_request_adapters/ValidateWorkspaceBounds
-    default_planning_request_adapters/CheckStartStateBounds
-    default_planning_request_adapters/CheckStartStateCollision
-    default_planning_request_adapters/AddTimeOptimalParameterization
+    default_planner_request_adapters/ResolveConstraintFrames
+    default_planner_request_adapters/FixWorkspaceBounds
+    default_planner_request_adapters/FixStartStateBounds
+    default_planner_request_adapters/FixStartStateCollision
+    default_planner_request_adapters/AddTimeOptimalParameterization
 
   planner_id: "TraceMotion"
 

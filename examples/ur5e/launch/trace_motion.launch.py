@@ -9,6 +9,7 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     ur_type = LaunchConfiguration("ur_type")
     launch_rviz = LaunchConfiguration("launch_rviz")
+    use_fake_hardware = LaunchConfiguration("use_fake_hardware")
 
     trace_params = PathJoinSubstitution(
         [
@@ -35,6 +36,11 @@ def generate_launch_description():
                 default_value="true",
                 description="Whether ur_moveit_config should launch RViz.",
             ),
+            DeclareLaunchArgument(
+                "use_fake_hardware",
+                default_value="true",
+                description="Tell ur_moveit_config to use fake-hardware controller defaults.",
+            ),
             GroupAction(
                 [
                     SetParametersFromFile(trace_params),
@@ -43,6 +49,7 @@ def generate_launch_description():
                         launch_arguments={
                             "ur_type": ur_type,
                             "launch_rviz": launch_rviz,
+                            "use_fake_hardware": use_fake_hardware,
                         }.items(),
                     ),
                 ]

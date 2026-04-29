@@ -1,16 +1,18 @@
 # Example planning pipeline parameters for Universal Robots UR5e.
 # This file is intended to be merged into a normal ur_moveit_config launch.
 planning_pipelines:
-  pipeline_names: ["trace_motion_planner", "ompl"]
+  pipeline_names: ["trace_motion_planner"]
+
+default_planning_pipeline: "trace_motion_planner"
 
 trace_motion_planner:
   planning_plugin: "moveit_trace_motion_planner/TracePlannerManager"
   request_adapters: >-
-    default_planning_request_adapters/ResolveConstraintFrames
-    default_planning_request_adapters/ValidateWorkspaceBounds
-    default_planning_request_adapters/CheckStartStateBounds
-    default_planning_request_adapters/CheckStartStateCollision
-    default_planning_request_adapters/AddTimeOptimalParameterization
+    default_planner_request_adapters/ResolveConstraintFrames
+    default_planner_request_adapters/FixWorkspaceBounds
+    default_planner_request_adapters/FixStartStateBounds
+    default_planner_request_adapters/FixStartStateCollision
+    default_planner_request_adapters/AddTimeOptimalParameterization
   start_state_max_bounds_error: 0.1
   planner_id: "TraceMotion"
 

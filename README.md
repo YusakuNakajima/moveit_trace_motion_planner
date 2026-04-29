@@ -61,6 +61,10 @@ Then:
 ros2 launch moveit_trace_motion_planner trace_ur5e.launch.py ur_type:=ur5e launch_rviz:=true
 ```
 
+The UR5e MoveIt launch defaults `use_fake_hardware:=true` in this package so
+MoveIt selects `joint_trajectory_controller` instead of the scaled controller
+that is inactive under fake hardware.
+
 FR3 without a real robot:
 
 ```bash
@@ -70,6 +74,9 @@ ros2 launch moveit_trace_motion_planner trace_fr3.launch.py robot_ip:=dont-care 
 The launch files overlay this package's Trace planner parameters on top of the
 upstream robot MoveIt launch files. They have not been executed in this local
 environment because ROS 2 is not installed here.
+
+In RViz, use the MotionPlanning panel with planning pipeline
+`trace_motion_planner` and planner id `TraceMotion`.
 
 ## Example Targets
 
