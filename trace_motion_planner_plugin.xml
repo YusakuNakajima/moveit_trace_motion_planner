@@ -1,0 +1,10 @@
+<library path="moveit_trace_motion_planner">
+  <class
+    name="moveit_trace_motion_planner/TracePlannerManager"
+    type="moveit_trace_motion_planner::TracePlannerManager"
+    base_class_type="planning_interface::PlannerManager">
+    <description>
+      Minimal deterministic Trace motion planner for MoveIt2.
+    </description>
+  </class>
+</library>

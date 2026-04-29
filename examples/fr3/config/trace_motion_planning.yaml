@@ -1,0 +1,50 @@
+# Example planning pipeline parameters for Franka Research 3 / FR3.
+# This file is intended to be merged into a normal franka_fr3_moveit_config launch.
+planning_pipelines:
+  pipeline_names: ["trace_motion_planner", "ompl"]
+
+trace_motion_planner:
+  planning_plugin: "moveit_trace_motion_planner/TracePlannerManager"
+  request_adapters: >-
+    default_planning_request_adapters/ResolveConstraintFrames
+    default_planning_request_adapters/ValidateWorkspaceBounds
+    default_planning_request_adapters/CheckStartStateBounds
+    default_planning_request_adapters/CheckStartStateCollision
+    default_planning_request_adapters/AddTimeOptimalParameterization
+  start_state_max_bounds_error: 0.1
+  planner_id: "TraceMotion"
+
+  trace_planner:
+    max_planning_time: 1.0
+    max_waypoints: 24
+    waypoint_source:
+      use_joint_positions: true
+      use_link_directions: true
+      skip_base_link: true
+      skip_tip_link: false
+    ik:
+      type: "moveit_ik"
+      timeout: 0.02
+      attempts: 3
+    interpolation:
+      type: "linear"
+      max_joint_step: 0.03
+    trajectory:
+      waypoint_duration: 0.1
+    collision:
+      check_self_collision: true
+      check_scene_collision: true
+    shift_motion:
+      enabled: false
+      auto_enable_if_dof_ge: 7
+      strategy: "joint_sampling"
+      shift_joints: []
+      delta: 0.2
+      samples: 5
+    postprocess:
+      path_pruning: false
+      spline_smoothing: false
+      time_parameterization: true
+    fallback:
+      enabled: false
+      planner_id: "RRTConnectkConfigDefault"

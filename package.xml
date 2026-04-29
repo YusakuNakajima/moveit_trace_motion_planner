@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>moveit_trace_motion_planner</name>
+  <version>0.1.0</version>
+  <description>MoveIt2 planning plugin implementing a minimal Trace motion planner.</description>
+  <maintainer email="maintainer@example.com">moveit_trace_motion_planner maintainers</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>class_loader</depend>
+  <depend>geometry_msgs</depend>
+  <depend>moveit_core</depend>
+  <depend>moveit_msgs</depend>
+  <depend>moveit_ros_planning</depend>
+  <depend>pluginlib</depend>
+  <depend>rclcpp</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+    <moveit_core plugin="${prefix}/trace_motion_planner_plugin.xml"/>
+  </export>
+</package>
