@@ -284,6 +284,30 @@ bool TracePlanner::solveIk(const moveit::core::JointModelGroup* joint_model_grou
   return false;
 }
 
+bool TracePlanner::solveIkWithSeeds(const moveit::core::JointModelGroup* joint_model_group,
+                                    const std::string& tip_link, const Eigen::Isometry3d& target_pose,
+                                    const std::vector<const moveit::core::RobotState*>& seed_states,
+                                    moveit::core::RobotState& solution_state) const
+{
+  for (const auto* seed_state : seed_states)
+  {
+    if (!seed_state)
+    {
+      continue;
+    }
+    if (solveIk(joint_model_group, tip_link, target_pose, *seed_state, solution_state))
+    {
+      return true;
+    }
+    if (!config_.try_alternate_ik_seeds)
+    {
+      break;
+    }
+  }
+
+  return false;
+}
+
 std::vector<moveit::core::RobotState> TracePlanner::buildTraceStatePath(
     const moveit::core::RobotState& start_state, const moveit::core::RobotState& goal_state,
     const moveit::core::JointModelGroup* joint_model_group, const std::string& tip_link,
@@ -298,6 +322,9 @@ std::vector<moveit::core::RobotState> TracePlanner::buildTraceStatePath(
   const std::size_t available_waypoints = start_waypoints.size() + goal_waypoints.size();
   const std::size_t max_waypoints = std::min(config_.max_waypoints, available_waypoints);
   bool saw_intermediate_ik_success = false;
+  std::size_t attempted_waypoints = 0;
+  std::size_t ik_failures = 0;
+  std::size_t collision_failures = 0;
 
   for (std::size_t added = 0; added < max_waypoints; ++added)
   {
@@ -327,11 +354,28 @@ std::vector<moveit::core::RobotState> TracePlanner::buildTraceStatePath(
       break;
     }
 
+    ++attempted_waypoints;
     const moveit::core::RobotState& seed_state =
         waypoint->source == TraceWaypoint::Source::GOAL ? goal_state : start_state;
-    moveit::core::RobotState intermediate_state(seed_state);
-    if (!solveIk(joint_model_group, tip_link, waypoint->target_pose, seed_state, intermediate_state))
+    const moveit::core::RobotState* same_side_seed = &seed_state;
+    const moveit::core::RobotState* last_same_side_seed = nullptr;
+    const moveit::core::RobotState* opposite_side_seed =
+        waypoint->source == TraceWaypoint::Source::GOAL ? &start_state : &goal_state;
+    if (waypoint->source == TraceWaypoint::Source::GOAL && !goal_side.empty())
     {
+      last_same_side_seed = &goal_side.front();
+    }
+    else if (waypoint->source == TraceWaypoint::Source::START && !start_side.empty())
+    {
+      last_same_side_seed = &start_side.back();
+    }
+
+    moveit::core::RobotState intermediate_state(seed_state);
+    const std::vector<const moveit::core::RobotState*> seed_states = { same_side_seed, last_same_side_seed,
+                                                                       opposite_side_seed };
+    if (!solveIkWithSeeds(joint_model_group, tip_link, waypoint->target_pose, seed_states, intermediate_state))
+    {
+      ++ik_failures;
       RCLCPP_DEBUG(logger_, "Trace waypoint IK failed for link '%s'", waypoint->link_name.c_str());
       continue;
     }
@@ -356,12 +400,21 @@ std::vector<moveit::core::RobotState> TracePlanner::buildTraceStatePath(
     if (collision_checker.isPathCollisionFree(candidate_path))
     {
       failure_reason = TraceFailureReason::NONE;
+      RCLCPP_INFO(logger_, "Trace planner accepted %zu waypoint(s) after trying %zu candidate waypoint(s)",
+                  candidate_path.size() - 2, attempted_waypoints);
       return candidate_path;
     }
+
+    ++collision_failures;
   }
 
   failure_reason = saw_intermediate_ik_success ? TraceFailureReason::COLLISION_FREE_PATH_NOT_FOUND :
                                                  TraceFailureReason::INTERMEDIATE_IK_FAILED;
+  RCLCPP_WARN(logger_,
+              "Trace planner exhausted waypoint candidates: attempted=%zu, ik_failures=%zu, collision_failures=%zu, "
+              "start_candidates=%zu, goal_candidates=%zu, max_waypoints=%zu",
+              attempted_waypoints, ik_failures, collision_failures, start_waypoints.size(), goal_waypoints.size(),
+              max_waypoints);
   return {};
 }
 

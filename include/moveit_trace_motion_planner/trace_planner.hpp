@@ -33,6 +33,10 @@ private:
   bool solveIk(const moveit::core::JointModelGroup* joint_model_group, const std::string& tip_link,
                const Eigen::Isometry3d& target_pose, const moveit::core::RobotState& seed_state,
                moveit::core::RobotState& solution_state) const;
+  bool solveIkWithSeeds(const moveit::core::JointModelGroup* joint_model_group, const std::string& tip_link,
+                        const Eigen::Isometry3d& target_pose,
+                        const std::vector<const moveit::core::RobotState*>& seed_states,
+                        moveit::core::RobotState& solution_state) const;
   std::vector<moveit::core::RobotState> buildTraceStatePath(
       const moveit::core::RobotState& start_state, const moveit::core::RobotState& goal_state,
       const moveit::core::JointModelGroup* joint_model_group, const std::string& tip_link,

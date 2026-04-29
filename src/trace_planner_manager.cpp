@@ -22,6 +22,7 @@ bool TracePlannerManager::initialize(const moveit::core::RobotModelConstPtr& mod
   readParameter("trace_planner.max_planning_time", config_.max_planning_time);
   readParameter("trace_planner.ik.timeout", config_.ik_timeout);
   readParameter("trace_planner.ik.attempts", config_.ik_attempts);
+  readParameter("trace_planner.ik.try_alternate_seeds", config_.try_alternate_ik_seeds);
   readParameter("trace_planner.interpolation.max_joint_step", config_.max_joint_step);
   readParameter("trace_planner.trajectory.waypoint_duration", config_.waypoint_duration);
   readParameter("trace_planner.waypoint_source.use_joint_positions", config_.use_joint_positions);

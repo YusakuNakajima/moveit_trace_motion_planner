@@ -18,7 +18,7 @@
 
       trace_planner:
         max_planning_time: 1.0
-        max_waypoints: 20
+        max_waypoints: 40
         waypoint_source:
           use_joint_positions: true
           use_link_directions: true
@@ -28,6 +28,7 @@
           type: "moveit_ik"
           timeout: 0.02
           attempts: 3
+          try_alternate_seeds: true
         interpolation:
           type: "linear"
           max_joint_step: 0.03

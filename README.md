@@ -14,6 +14,7 @@ Masanori Sekiguchi and Naoyuki Takesue, "Motion Planning for Redundant
 - Direct start-to-goal joint interpolation with collision checking.
 - Trace waypoint fallback generated from start and goal robot shapes.
 - MoveIt standard full-pose IK for goal and intermediate waypoints.
+- Alternate IK seeds for intermediate waypoints to improve Trace fallback success.
 - Shift motion configuration is present but disabled by default.
 
 The v0 implementation is deliberately not a full reproduction of the paper. In
