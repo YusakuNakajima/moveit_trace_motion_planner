@@ -17,6 +17,7 @@ find_package(rclcpp REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
   src/collision_checker.cpp
+  src/direction_ik_solver.cpp
   src/trace_planner.cpp
   src/trace_planner_manager.cpp
   src/trace_planner_types.cpp

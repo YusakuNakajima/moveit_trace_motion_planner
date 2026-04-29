@@ -1,6 +1,7 @@
 #include <moveit_trace_motion_planner/trace_planner.hpp>
 
 #include <moveit_trace_motion_planner/collision_checker.hpp>
+#include <moveit_trace_motion_planner/direction_ik_solver.hpp>
 #include <moveit_trace_motion_planner/trajectory_builder.hpp>
 #include <moveit_trace_motion_planner/waypoint_generator.hpp>
 
@@ -287,13 +288,19 @@ bool TracePlanner::solveIk(const moveit::core::JointModelGroup* joint_model_grou
 bool TracePlanner::solveIkWithSeeds(const moveit::core::JointModelGroup* joint_model_group,
                                     const std::string& tip_link, const Eigen::Isometry3d& target_pose,
                                     const std::vector<const moveit::core::RobotState*>& seed_states,
-                                    moveit::core::RobotState& solution_state) const
+                                    moveit::core::RobotState& solution_state, bool allow_direction_ik) const
 {
+  DirectionIkSolver direction_ik_solver(config_.direction_ik);
   for (const auto* seed_state : seed_states)
   {
     if (!seed_state)
     {
       continue;
+    }
+    if (allow_direction_ik && direction_ik_solver.solve(joint_model_group, tip_link, target_pose, *seed_state,
+                                                        solution_state))
+    {
+      return true;
     }
     if (solveIk(joint_model_group, tip_link, target_pose, *seed_state, solution_state))
     {
@@ -373,7 +380,7 @@ std::vector<moveit::core::RobotState> TracePlanner::buildTraceStatePath(
     moveit::core::RobotState intermediate_state(seed_state);
     const std::vector<const moveit::core::RobotState*> seed_states = { same_side_seed, last_same_side_seed,
                                                                        opposite_side_seed };
-    if (!solveIkWithSeeds(joint_model_group, tip_link, waypoint->target_pose, seed_states, intermediate_state))
+    if (!solveIkWithSeeds(joint_model_group, tip_link, waypoint->target_pose, seed_states, intermediate_state, true))
     {
       ++ik_failures;
       RCLCPP_DEBUG(logger_, "Trace waypoint IK failed for link '%s'", waypoint->link_name.c_str());

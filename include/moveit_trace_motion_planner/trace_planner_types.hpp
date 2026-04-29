@@ -3,6 +3,7 @@
 #include <Eigen/Geometry>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/msg/move_it_error_codes.hpp>
+#include <moveit_trace_motion_planner/direction_ik_solver.hpp>
 #include <string>
 #include <vector>
 
@@ -30,6 +31,7 @@ struct TracePlannerConfig
   double ik_timeout{ 0.02 };
   int ik_attempts{ 3 };
   bool try_alternate_ik_seeds{ true };
+  DirectionIkConfig direction_ik;
 
   double max_joint_step{ 0.03 };
   double waypoint_duration{ 0.1 };

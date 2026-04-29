@@ -29,6 +29,15 @@ trace_motion_planner:
       timeout: 0.02
       attempts: 3
       try_alternate_seeds: true
+    direction_ik:
+      enabled: true
+      max_iterations: 80
+      timeout: 0.02
+      damping: 0.05
+      step_size: 0.6
+      position_tolerance: 0.005
+      direction_tolerance: 0.02
+      max_joint_update: 0.15
     interpolation:
       type: "linear"
       max_joint_step: 0.03
