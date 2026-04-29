@@ -11,3 +11,12 @@ planner_id: TraceMotion
 ```
 
 Shift motion is intentionally disabled for this 6-DOF example.
+
+From an installed ROS 2 Humble workspace:
+
+```bash
+ros2 launch moveit_trace_motion_planner trace_ur5e.launch.py ur_type:=ur5e launch_rviz:=true
+```
+
+The launch file includes `ur_moveit_config/ur_moveit.launch.py` and overlays
+`config/trace_motion_planning.params.yaml`.

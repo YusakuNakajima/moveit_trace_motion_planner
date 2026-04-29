@@ -46,6 +46,24 @@ Expected plugin name:
 moveit_trace_motion_planner/TracePlannerManager
 ```
 
+## Example Launch
+
+UR5e with `ur_moveit_config`:
+
+```bash
+ros2 launch moveit_trace_motion_planner trace_ur5e.launch.py ur_type:=ur5e launch_rviz:=true
+```
+
+FR3 with `franka_fr3_moveit_config` and fake hardware:
+
+```bash
+ros2 launch moveit_trace_motion_planner trace_fr3.launch.py robot_ip:=dont-care use_fake_hardware:=true
+```
+
+The launch files overlay this package's Trace planner parameters on top of the
+upstream robot MoveIt launch files. They have not been executed in this local
+environment because ROS 2 is not installed here.
+
 ## Example Targets
 
 - UR5e through `ur_moveit_config`
