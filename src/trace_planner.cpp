@@ -323,15 +323,16 @@ std::vector<moveit::core::RobotState> TracePlanner::buildTraceStatePath(
 {
   CollisionChecker collision_checker(planning_scene, joint_model_group->getName(), config_.max_joint_step);
 
-  std::vector<moveit::core::RobotState> committed_start_side;
-  std::vector<moveit::core::RobotState> committed_goal_side;
-
   const std::size_t available_waypoints = start_waypoints.size() + goal_waypoints.size();
   const std::size_t max_waypoints = std::min(config_.max_waypoints, available_waypoints);
   bool saw_intermediate_ik_success = false;
   std::size_t attempted_waypoints = 0;
   std::size_t ik_failures = 0;
   std::size_t collision_failures = 0;
+  std::vector<moveit::core::RobotState> committed_start_side;
+  std::vector<moveit::core::RobotState> committed_goal_side;
+  std::vector<moveit::core::RobotState> solved_start_waypoints;
+  std::vector<moveit::core::RobotState> solved_goal_waypoints;
 
   for (std::size_t added = 0; added < max_waypoints; ++added)
   {
@@ -365,17 +366,12 @@ std::vector<moveit::core::RobotState> TracePlanner::buildTraceStatePath(
     const moveit::core::RobotState& seed_state =
         waypoint->source == TraceWaypoint::Source::GOAL ? goal_state : start_state;
     const moveit::core::RobotState* same_side_seed = &seed_state;
-    const moveit::core::RobotState* last_same_side_seed = nullptr;
+    const std::vector<moveit::core::RobotState>& same_side_solved =
+        waypoint->source == TraceWaypoint::Source::GOAL ? committed_goal_side : committed_start_side;
+    const moveit::core::RobotState* last_same_side_seed =
+        same_side_solved.empty() ? nullptr : &same_side_solved.back();
     const moveit::core::RobotState* opposite_side_seed =
         waypoint->source == TraceWaypoint::Source::GOAL ? &start_state : &goal_state;
-    if (waypoint->source == TraceWaypoint::Source::GOAL && !committed_goal_side.empty())
-    {
-      last_same_side_seed = &committed_goal_side.front();
-    }
-    else if (waypoint->source == TraceWaypoint::Source::START && !committed_start_side.empty())
-    {
-      last_same_side_seed = &committed_start_side.back();
-    }
 
     moveit::core::RobotState intermediate_state(seed_state);
     const std::vector<const moveit::core::RobotState*> seed_states = { same_side_seed, last_same_side_seed,
@@ -388,6 +384,15 @@ std::vector<moveit::core::RobotState> TracePlanner::buildTraceStatePath(
     }
 
     saw_intermediate_ik_success = true;
+    if (waypoint->source == TraceWaypoint::Source::GOAL)
+    {
+      solved_goal_waypoints.push_back(intermediate_state);
+    }
+    else
+    {
+      solved_start_waypoints.push_back(intermediate_state);
+    }
+
     std::vector<moveit::core::RobotState> trial_start_side = committed_start_side;
     std::vector<moveit::core::RobotState> trial_goal_side = committed_goal_side;
     if (waypoint->source == TraceWaypoint::Source::GOAL)
@@ -405,11 +410,11 @@ std::vector<moveit::core::RobotState> TracePlanner::buildTraceStatePath(
     candidate_path.insert(candidate_path.end(), trial_start_side.begin(), trial_start_side.end());
     candidate_path.insert(candidate_path.end(), trial_goal_side.begin(), trial_goal_side.end());
     candidate_path.push_back(goal_state);
-
     if (collision_checker.isPathCollisionFree(candidate_path))
     {
       failure_reason = TraceFailureReason::NONE;
-      RCLCPP_INFO(logger_, "Trace planner accepted %zu waypoint(s) after trying %zu candidate waypoint(s)",
+      RCLCPP_INFO(logger_, "Trace planner accepted accumulated trace path with %zu waypoint(s) after trying %zu "
+                          "candidate waypoint(s)",
                   candidate_path.size() - 2, attempted_waypoints);
       return candidate_path;
     }
@@ -422,13 +427,48 @@ std::vector<moveit::core::RobotState> TracePlanner::buildTraceStatePath(
     }
   }
 
+  if (!config_.enable_shortcut_search)
+  {
+    failure_reason = saw_intermediate_ik_success ? TraceFailureReason::COLLISION_FREE_PATH_NOT_FOUND :
+                                                   TraceFailureReason::INTERMEDIATE_IK_FAILED;
+    RCLCPP_WARN(logger_,
+                "Trace planner exhausted accumulated waypoint candidates: attempted=%zu, ik_failures=%zu, "
+                "collision_failures=%zu, start_candidates=%zu, goal_candidates=%zu, max_waypoints=%zu",
+                attempted_waypoints, ik_failures, collision_failures, start_waypoints.size(), goal_waypoints.size(),
+                max_waypoints);
+    return {};
+  }
+
+  const std::size_t start_pair_count = std::min(config_.max_pair_candidates_per_side, solved_start_waypoints.size());
+  const std::size_t goal_pair_count = std::min(config_.max_pair_candidates_per_side, solved_goal_waypoints.size());
+  std::size_t pair_collision_failures = 0;
+  for (std::size_t start_index = 0; start_index < start_pair_count; ++start_index)
+  {
+    for (std::size_t goal_index = 0; goal_index < goal_pair_count; ++goal_index)
+    {
+      std::vector<moveit::core::RobotState> candidate_path{
+        start_state, solved_start_waypoints[start_index], solved_goal_waypoints[goal_index], goal_state
+      };
+      if (collision_checker.isPathCollisionFree(candidate_path))
+      {
+        failure_reason = TraceFailureReason::NONE;
+        RCLCPP_INFO(logger_,
+                    "Trace planner accepted start/goal waypoint pair after trying %zu single candidate(s) and %zu "
+                    "pair candidate(s)",
+                    attempted_waypoints, start_index * goal_pair_count + goal_index + 1);
+        return candidate_path;
+      }
+      ++pair_collision_failures;
+    }
+  }
+
   failure_reason = saw_intermediate_ik_success ? TraceFailureReason::COLLISION_FREE_PATH_NOT_FOUND :
                                                  TraceFailureReason::INTERMEDIATE_IK_FAILED;
   RCLCPP_WARN(logger_,
               "Trace planner exhausted waypoint candidates: attempted=%zu, ik_failures=%zu, collision_failures=%zu, "
-              "start_candidates=%zu, goal_candidates=%zu, max_waypoints=%zu",
-              attempted_waypoints, ik_failures, collision_failures, start_waypoints.size(), goal_waypoints.size(),
-              max_waypoints);
+              "pair_collision_failures=%zu, start_candidates=%zu, goal_candidates=%zu, max_waypoints=%zu",
+              attempted_waypoints, ik_failures, collision_failures, pair_collision_failures, start_waypoints.size(),
+              goal_waypoints.size(), max_waypoints);
   return {};
 }
 

@@ -43,8 +43,10 @@ struct TracePlannerConfig
   bool use_link_directions{ true };
   bool skip_base_link{ true };
   bool skip_tip_link{ false };
-  bool add_offset_waypoints{ true };
+  bool add_offset_waypoints{ false };
   double waypoint_offset_distance{ 0.08 };
+  std::size_t max_pair_candidates_per_side{ 24 };
+  bool enable_shortcut_search{ false };
 
   bool shift_motion_enabled{ false };
 };

@@ -47,6 +47,11 @@ bool TracePlannerManager::initialize(const moveit::core::RobotModelConstPtr& mod
   readParameter("trace_planner.max_waypoints", max_waypoints);
   config_.max_waypoints = static_cast<std::size_t>(std::max(0, max_waypoints));
 
+  int max_pair_candidates_per_side = static_cast<int>(config_.max_pair_candidates_per_side);
+  readParameter("trace_planner.max_pair_candidates_per_side", max_pair_candidates_per_side);
+  config_.max_pair_candidates_per_side = static_cast<std::size_t>(std::max(0, max_pair_candidates_per_side));
+  readParameter("trace_planner.search.enable_shortcut_search", config_.enable_shortcut_search);
+
   if (!robot_model_ || !node_)
   {
     return false;

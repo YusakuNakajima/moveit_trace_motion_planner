@@ -13,7 +13,8 @@ Masanori Sekiguchi and Naoyuki Takesue, "Motion Planning for Redundant
 - Planner id: `TraceMotion`.
 - Direct start-to-goal joint interpolation with collision checking.
 - Trace waypoint fallback generated from start and goal robot shapes.
-- Deterministic offset waypoints around each traced body waypoint.
+- Paper-style accumulated Trace waypoint path by default.
+- Optional deterministic offset waypoints and shortcut search for experiments.
 - MoveIt standard full-pose IK for final pose goals.
 - Position-plus-direction numerical IK for intermediate Trace waypoints, with
   MoveIt full-pose IK fallback.
